@@ -124,8 +124,7 @@ async function fetchData() {
 
   try {
 		const me = {};
-		whoIsFetching = me
-
+		whoIsFetching = me;
     const { data } = await api.get(`insights/query/${id.value}`, {
       params: variablesInQuery.value,
     });
@@ -147,8 +146,8 @@ async function fetchData() {
         };
       });
 
-      const numberCols = props.columns && props.columns.filter(c => c.isNumber);
-      if (numberCols) {
+      const numberCols = props.columns?.filter(c => c.isNumber);
+      if (numberCols.length > 0) {
         items.value = data.items.map(item => {
           numberCols.forEach(col => {
             item[col.value] = item[col.value] !== '' ? item[col.value] * 1 : null;

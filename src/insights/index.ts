@@ -21,7 +21,7 @@ const registerEndpoint: EndpointConfig = ((router, { database, services, emitter
         cache: number;
       };
     };
-
+    
     let { variables, query }: RequestPayload = await emitter.emitFilter(OnFilterEvents.REQUEST, {
       variables: Object.assign({ dashboard: panel.dashboard }, req.query ?? {}),
       query: panel.options.sql,
@@ -55,16 +55,15 @@ const registerEndpoint: EndpointConfig = ((router, { database, services, emitter
     if (missingParams) {
       throw new Error(`Missing query param: ${missingParams.join(', ').replace(/{{|}}/g, '')}`);
     }
-
     const result = await database.raw(sql, vars);
+  
     return parseResults(result);
   }
 
   router.get('/query/:panelId', async (req, res) => {
 		try {
-    	const { query, variables, panel } = await getPanelQuery(req)
-      let result: ResponsePayload = await executeQuery(query, variables)
-
+    	const { query, variables, panel } = await getPanelQuery(req);
+      let result: ResponsePayload = await executeQuery(query, variables);
       result = await emitter.emitFilter(OnFilterEvents.RESPONSE, result, req);      
 
       // Default cache of 300 seconds
