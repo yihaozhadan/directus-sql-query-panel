@@ -1,4 +1,9 @@
+# Version 1.0.11
+
+- Fix the sql query date format variable conversion issue.
+
 # Version 1.0.10
+
 
 - Fix setting of variable
 

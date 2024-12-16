@@ -25,7 +25,6 @@ export default definePanel({
       field: "columns",
       name: "Columns",
       type: "json",
-      special: "cast-json",
       meta: {
         width: "full",
         interface: "list",
@@ -133,7 +132,6 @@ export default definePanel({
       field: "actions",
       name: "Actions",
       type: "json",
-      special: "cast-json",
       meta: {
         width: "full",
         interface: "list",

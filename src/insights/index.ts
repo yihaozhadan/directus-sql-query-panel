@@ -1,8 +1,8 @@
-import type { EndpointConfig } from '@directus/extensions';
+import { defineEndpoint } from '@directus/extensions';
 import { parseResults } from './parseQueryResults';
 import { OnFilterEvents, RequestPayload, ResponsePayload } from './types';
 
-const registerEndpoint: EndpointConfig = ((router, { database, services, emitter }) => {
+export default defineEndpoint((router, { database, services, emitter }) => {
   const { PanelsService } = services;
 
   async function getPanelQuery(req: any) {
@@ -21,7 +21,7 @@ const registerEndpoint: EndpointConfig = ((router, { database, services, emitter
         cache: number;
       };
     };
-    
+
     let { variables, query }: RequestPayload = await emitter.emitFilter(OnFilterEvents.REQUEST, {
       variables: Object.assign({ dashboard: panel.dashboard }, req.query ?? {}),
       query: panel.options.sql,
@@ -32,10 +32,12 @@ const registerEndpoint: EndpointConfig = ((router, { database, services, emitter
       if (!q.match(/^[a-zA-Z0-9_]+$/)) {
         throw new Error(`Invalid variable name: ${q}`);
       }
-
-      query = query.replace(new RegExp(`{{${q}}}`, 'g'), `:${q}`);
+      if (isValidDateFormat(variables[q])) {
+        query = query.replace(new RegExp(`{{${q}}}`, 'g'), new Date(variables[q]).getTime());
+      } else {
+        query = query.replace(new RegExp(`{{${q}}}`, 'g'), variables[q]);
+      }
     }
-
     return {
       query,
       variables,
@@ -60,6 +62,22 @@ const registerEndpoint: EndpointConfig = ((router, { database, services, emitter
     return parseResults(result);
   }
 
+  function isValidDateFormat(dateString: string): boolean {
+    // Regular expression to match YYYY-MM-DD format
+    const dateFormatRegex = /^\d{4}-\d{2}-\d{2}$/;
+    
+    // First, check if the string matches the basic format
+    if (!dateFormatRegex.test(dateString)) {
+      return false;
+    }
+    
+    // Create a Date object to validate the actual date
+    const date = new Date(dateString);
+    
+    // Check if the date is valid and matches the original string
+    return date.toISOString().slice(0, 10) === dateString;
+  }
+
   router.get('/query/:panelId', async (req, res) => {
 		try {
     	const { query, variables, panel } = await getPanelQuery(req);
@@ -75,6 +93,5 @@ const registerEndpoint: EndpointConfig = ((router, { database, services, emitter
       return res.status(400).json({ error: (err as Error).message })
 		}
   });
-});
 
-export default registerEndpoint;
+});
